@@ -104,7 +104,6 @@ function HomePage({ data, openTool, navigate, togglePin, toggleTheme, torchOn, t
     <main className="page home-page">
       <header className="hero-header">
         <div><span className="eyebrow"><Sparkles size={14} /> WATTtool</span><h1>Good to go.</h1><p>Smart tools for the trade.</p></div>
-        <div className="brand-mark" role="img" aria-label="WATTtool logo" />
       </header>
 
       <div className="quick-controls" aria-label="Site controls">
