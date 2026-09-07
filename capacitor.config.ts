@@ -8,14 +8,17 @@ const config: CapacitorConfig = {
     backgroundColor: '#050506',
   },
   plugins: {
+    SystemBars: {
+      insetsHandling: 'css',
+    },
     SplashScreen: {
       launchAutoHide: true,
       launchShowDuration: 450,
       backgroundColor: '#050506',
       showSpinner: false,
       androidScaleType: 'CENTER_CROP',
-      splashFullScreen: true,
-      splashImmersive: true,
+      splashFullScreen: false,
+      splashImmersive: false,
     },
   },
 };
