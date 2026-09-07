@@ -59,17 +59,6 @@ function SignatureEditor({ job, onClose, onSave }: { job: Job; onClose: () => vo
   return <Modal title="Sign calculation record" onClose={onClose}><div className="signature-form"><label className="field"><span>Signed by *</span><div className="input-wrap"><input value={name} onChange={(event) => setName(event.target.value)} placeholder="Full name" /></div></label><label className="field"><span>Date</span><div className="input-wrap"><input type="date" value={date} onChange={(event) => setDate(event.target.value)} /></div></label><div className="signature-label"><span>Signature</span><button onClick={clear}>Clear</button></div><canvas ref={canvasRef} className="signature-pad" onPointerDown={start} onPointerMove={move} onPointerUp={() => setDrawing(false)} onPointerCancel={() => setDrawing(false)} /><p className="signature-note">This signs the calculation record only. It does not turn it into an electrical certificate.</p><button className="primary-button full" disabled={name.trim().length < 2} onClick={save}><Pencil size={17} /> Save signature</button></div></Modal>;
 }
 
-function Splash() {
-  return (
-    <div className="splash" aria-label="Loading WATTtool">
-      <div className="splash-orbit"><Zap size={34} fill="currentColor" /></div>
-      <strong>WATT<em>tool</em></strong>
-      <span>Smart tools for the trade</span>
-      <i />
-    </div>
-  );
-}
-
 function Disclaimer({ accept }: { accept: () => void }) {
   const [checked, setChecked] = useState(false);
   return (
@@ -353,11 +342,9 @@ export default function App() {
   const [signingJob, setSigningJob] = useState<Job | null>(null);
   const [previewJob, setPreviewJob] = useState<Job | null>(null);
   const [toast, setToast] = useState('');
-  const [splash, setSplash] = useState(true);
   const [torchOn, setTorchOn] = useState(false);
   const [carriedR1R2, setCarriedR1R2] = useState<string | null>(null);
 
-  useEffect(() => { const timer = window.setTimeout(() => setSplash(false), 1250); return () => window.clearTimeout(timer); }, []);
   useEffect(() => { if (!saveData(data)) setToast('Storage is full — export a backup'); }, [data]);
   useEffect(() => { document.documentElement.dataset.theme = data.theme ?? 'dark'; }, [data.theme]);
   useEffect(() => { if (!toast) return; const timer = window.setTimeout(() => setToast(''), 2600); return () => window.clearTimeout(timer); }, [toast]);
@@ -375,8 +362,7 @@ export default function App() {
   const tool = activeTool ? calculatorById(activeTool) : undefined;
 
   return <div className="app-shell">
-    {splash && <Splash />}
-    {!data.disclaimerAccepted && !splash && <Disclaimer accept={() => setData((state) => ({ ...state, disclaimerAccepted: true }))} />}
+    {!data.disclaimerAccepted && <Disclaimer accept={() => setData((state) => ({ ...state, disclaimerAccepted: true }))} />}
     {activeTool === 'scientific' ? <ScientificCalculator onBack={() => setActiveTool(null)} /> : activeTool === 'diversity' ? <DiversityCalculator onBack={() => setActiveTool(null)} onSave={saveCalculation} /> : tool ? <CalculatorPage key={`${tool.id}-${carriedR1R2 ?? ''}`} tool={tool} initialValues={tool.id === 'zs-pfc' && carriedR1R2 ? { r1r2: carriedR1R2 } : undefined} onCarryToZs={(value) => { setCarriedR1R2(value); setActiveTool('zs-pfc'); window.scrollTo({ top: 0 }); setToast('R1 + R2 carried into the Zs check'); }} onBack={() => setActiveTool(null)} onSave={saveCalculation} /> : <>{tab === 'home' && <HomePage data={data} openTool={openTool} navigate={navigate} togglePin={togglePin} toggleTheme={toggleTheme} torchOn={torchOn} toggleTorch={() => { void toggleTorch(); }} />}{tab === 'tools' && <ToolsPage data={data} openTool={openTool} togglePin={togglePin} />}{tab === 'jobs' && <JobsPage jobs={data.jobs} newJob={() => setNewJobOpen(true)} deleteJob={removeJob} preview={setPreviewJob} editJob={setEditingJob} updateJob={saveJob} signJob={setSigningJob} toast={setToast} />}{tab === 'notes' && <NotesPage notes={data.notes} saveNote={saveNote} deleteNote={removeNote} />}{tab === 'settings' && <SettingsPage data={data} replaceData={setData} toast={setToast} />}</>}
     {!activeTool && <BottomNav active={tab} navigate={navigate} />}
     {(savingEntry || newJobOpen || editingJob) && <JobEditor entry={savingEntry} job={editingJob} jobs={data.jobs} onClose={() => { setSavingEntry(undefined); setNewJobOpen(false); setEditingJob(undefined); }} onSave={saveJob} />}

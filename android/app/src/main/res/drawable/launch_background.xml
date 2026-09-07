@@ -5,6 +5,4 @@
             <solid android:color="#050506" />
         </shape>
     </item>
-    <item android:gravity="center" android:width="72dp" android:height="72dp" android:drawable="@mipmap/ic_launcher_foreground" />
 </layer-list>
-
