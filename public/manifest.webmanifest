@@ -1,0 +1,13 @@
+{
+  "name": "WATTtool — Smart tools for the trade",
+  "short_name": "WATTtool",
+  "description": "Smart offline electrical tools, calculations and job records for the trade.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#050506",
+  "theme_color": "#050506",
+  "icons": [
+    { "src": "/assets/watttool-icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}
