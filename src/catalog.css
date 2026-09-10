@@ -1,0 +1,38 @@
+/* Compact, high-contrast tool catalogue based on the supplied reference. */
+body { background: linear-gradient(#05050544, #05050544), url('/assets/honeycomb.svg') repeat, #080808; background-size: auto, 42px 73px, auto; }
+.tools-heading h1 { display: flex; gap: 10px; align-items: center; margin: 5px 0 14px; font-size: 27px; }
+.tools-page { --page-gutter: 14px; }
+.tools-toolbar { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.new-job-button, .tools-search { min-height: 44px; border: 1px solid #555; border-radius: 4px; display: flex; align-items: center; justify-content: center; gap: 9px; }
+.new-job-button { background: #f5f5f5; color: #111; cursor: pointer; }
+.tools-search { padding: 0 10px; background: #141414dd; }
+.tools-search input { width: 100%; min-width: 0; background: transparent; color: inherit; border: 0; outline: 0; }
+.tools-tabs { display: flex; border-bottom: 1px solid #454545; margin-top: 12px; }
+.tools-tabs button { flex: 1; min-height: 44px; display: flex; align-items: center; justify-content: center; gap: 7px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: #aaa; font-size: 12px; cursor: pointer; }
+.tools-tabs button.active { color: #fff; border-bottom-color: #008aff; }
+.tools-filters { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
+.tools-filters select { width: 100%; min-width: 0; padding: 8px 6px; min-height: 40px; font-size: 11px; background: #151515e8; color: inherit; border: 1px dashed #666; border-radius: 6px; }
+.tools-count { display: flex; align-items: center; gap: 12px; margin: 15px 0 10px; font-size: 11px; }
+.tools-count span { border-left: 1px solid #666; padding-left: 12px; color: #aaa; }
+.catalog-grid { display: grid; gap: 12px; }
+.catalog-card { min-width: 0; padding: 13px; border: 1px solid #4c4c4c; border-radius: 6px; background: linear-gradient(120deg,#1a1a1af5,#101010f5); box-shadow: 0 6px 16px #0004; animation: page-in .25s ease-out both; }
+.catalog-title { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.catalog-title h2 { margin: 0 0 3px; font-size: 18px; }
+.catalog-title p { margin: 0; color: #bbb; font-size: 11px; }
+.catalog-icon { display: grid; place-items: center; flex-shrink: 0; width: 37px; height: 37px; border-radius: 7px; color: #fff; }
+.catalog-card ul { list-style: none; padding: 0; margin: 12px 0 9px; }
+.catalog-card li { display: flex; gap: 9px; align-items: center; color: #ddd; font-size: 11px; margin: 6px 0; }
+.catalog-category { display: block; border-top: 1px dashed #555; padding-top: 8px; color: #59b4ff; text-transform: uppercase; font-size: 9px; font-weight: 800; }
+.catalog-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 9px; }
+.catalog-actions button { min-height: 44px; display: flex; align-items: center; justify-content: center; gap: 7px; border: 1px solid #008aff; border-radius: 4px; color: #49acff; background: transparent; font-size: 11px; cursor: pointer; }
+.catalog-actions button:last-child { background: #006bdd; color: white; }
+.catalog-actions button[aria-pressed=true] { background: #063764; color: #fff; }
+.catalog-actions button:active { transform: scale(.97); }
+.bottom-nav { background: #151515fa; box-shadow: none; }
+.bottom-nav button { border-radius: 5px; }
+[data-theme=light] body { background: url('/assets/honeycomb.svg') repeat, #f3f5f7; background-size: 42px 73px; }
+[data-theme=light] .catalog-card, [data-theme=light] .tools-search, [data-theme=light] .tools-filters select { background: #fffffff5; color: #17202b; border-color: #bcc6d0; }
+[data-theme=light] .catalog-card li, [data-theme=light] .catalog-title p, [data-theme=light] .tools-count span { color: #4c5968; }
+[data-theme=light] .tools-tabs button.active { color: #006bdd; }
+@media (min-width: 650px) { .catalog-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media (min-width: 1100px) { .catalog-grid { grid-template-columns: repeat(3,minmax(0,1fr)); } }

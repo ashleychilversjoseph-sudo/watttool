@@ -134,15 +134,33 @@ function HomePage({ data, openTool, navigate, togglePin, toggleTheme, torchOn, t
   );
 }
 
-function ToolsPage({ data, openTool, togglePin }: { data: AppData; openTool: (id: string) => void; togglePin: (id: string) => void }) {
-  const [filter, setFilter] = useState('All');
-  const shown = filter === 'All' ? calculators : calculators.filter((tool) => tool.category === filter);
-  return (
-    <main className="page"><div className="page-heading"><span className="eyebrow"><Wrench size={14} /> WATTtool</span><h1>Calculators</h1><p>Tap the pin to customise quick access.</p></div>
-      <div className="filter-pills">{['All', 'Design', 'Testing', 'General'].map((item) => <button key={item} className={filter === item ? 'active' : ''} onClick={() => setFilter(item)}>{item}</button>)}</div>
-      <div className="tool-grid">{shown.map((tool) => <ToolCard key={tool.id} tool={tool} onOpen={() => openTool(tool.id)} pinned={data.pinnedTools.includes(tool.id)} onPin={() => togglePin(tool.id)} />)}</div>
-    </main>
-  );
+function ToolsPage({ data, openTool, togglePin, newJob, recent }: { data: AppData; openTool: (id: string) => void; togglePin: (id: string) => void; newJob: () => void; recent: string[] }) {
+  const [category, setCategory] = useState('All');
+  const [view, setView] = useState('All tools');
+  const [query, setQuery] = useState('');
+  const [sort, setSort] = useState('Default');
+  const [type, setType] = useState('All');
+  const shown = calculators.filter(tool =>
+    (category === 'All' || tool.category === category) &&
+    (type === 'All' || tool.icon === type) &&
+    (view !== 'Favourites' || data.pinnedTools.includes(tool.id)) &&
+    (view !== 'Recent' || recent.includes(tool.id)) &&
+    (tool.title + ' ' + tool.subtitle).toLowerCase().includes(query.toLowerCase())
+  ).sort((a, b) => sort === 'A–Z' ? a.title.localeCompare(b.title) : sort === 'Z–A' ? b.title.localeCompare(a.title) : view === 'Recent' ? recent.indexOf(a.id) - recent.indexOf(b.id) : 0);
+  return <main className="page tools-page">
+    <header className="tools-heading"><span className="eyebrow">WATTtool</span><h1><Calculator size={27} /> Tools</h1></header>
+    <div className="tools-toolbar"><button className="new-job-button" onClick={newJob}><Plus size={17} /> New job</button><label className="tools-search"><Search size={16} /><input aria-label="Search tools" placeholder="Search…" value={query} onChange={e => setQuery(e.target.value)} /></label></div>
+    <div className="tools-tabs" role="tablist" aria-label="Tool collection">{['All tools', 'Favourites', 'Recent'].map((item, index) => <button key={item} role="tab" aria-selected={view === item} className={view === item ? 'active' : ''} onClick={() => setView(item)}>{index === 0 ? <Calculator size={15} /> : index === 1 ? <Pin size={15} /> : <RotateCcw size={15} />}{item}</button>)}</div>
+    <div className="tools-filters"><select aria-label="Category" value={category} onChange={e => setCategory(e.target.value)}>{['All', 'Design', 'Testing', 'General'].map(value => <option key={value} value={value}>{value === 'All' ? 'Category: all' : value}</option>)}</select><select aria-label="Tool type" value={type} onChange={e => setType(e.target.value)}><option value="All">Type: all</option>{Array.from(new Set(calculators.map(tool => tool.icon))).map(icon => <option key={icon} value={icon}>{calculators.find(tool => tool.icon === icon)?.title}</option>)}</select><select aria-label="Sort tools" value={sort} onChange={e => setSort(e.target.value)}>{['Default', 'A–Z', 'Z–A'].map(value => <option key={value} value={value}>{value === 'Default' ? 'Sort: default' : value}</option>)}</select></div>
+    <p className="tools-count"><strong>{shown.length} tools</strong><span>{category === 'All' ? 'All categories' : category}</span></p>
+    <div className="catalog-grid">{shown.map(tool => <article key={tool.id} className="catalog-card">
+      <div className="catalog-title"><div><h2>{tool.title}</h2><p>{tool.subtitle}</p></div><span className="catalog-icon" style={{ background: tool.accent }}><ToolIcon name={tool.icon} /></span></div>
+      <ul><li><Activity size={14} />{tool.id === 'cable' ? 'Current capacity & derating' : tool.id === 'diversity' ? 'Circuit loads in amps' : tool.subtitle}</li><li><Gauge size={14} />{tool.id === 'diversity' ? 'Demand assessment in amps' : 'Calculation breakdown'}</li></ul>
+      <span className="catalog-category">{tool.category}</span>
+      <div className="catalog-actions"><button aria-pressed={data.pinnedTools.includes(tool.id)} onClick={() => togglePin(tool.id)}><Pin size={14} />{data.pinnedTools.includes(tool.id) ? 'Favourited' : 'Favourite'}</button><button onClick={() => openTool(tool.id)}>Open tool <ChevronRight size={15} /></button></div>
+    </article>)}</div>
+    {!shown.length && <p className="empty-state">No tools here yet. {view === 'Recent' ? 'Open a tool to see it here.' : 'Try another filter or add favourites.'}</p>}
+  </main>;
 }
 
 function ScientificCalculator({ onBack }: { onBack: () => void }) {
@@ -175,7 +193,7 @@ function ScientificCalculator({ onBack }: { onBack: () => void }) {
   return <main className="page calculator-page"><button className="back-button" onClick={onBack}><ArrowLeft /> All calculators</button><div className="calc-title"><span className="tool-icon" style={{ '--accent': '#0c85ff' } as CSSProperties}><Calculator /></span><div><h1>Scientific calculator</h1><p>Fast site calculations</p></div></div><section className="scientific"><div className="scientific-mode"><span>Trigonometry</span><button onClick={() => setDegrees((value) => !value)}>{degrees ? 'DEG' : 'RAD'}</button></div><div className="scientific-display"><small>{expression || 'Ready'}</small><strong>{answer}</strong></div><div className="function-keys">{functions.map((key) => <button key={key} onClick={() => press(key)}>{key}</button>)}</div><div className="keypad">{keys.map((key) => <button key={key} className={key === '=' ? 'equals' : ''} onClick={() => press(key)}>{key}</button>)}</div></section></main>;
 }
 
-type DiversityCircuit = { id: string; type: string; value: string; unit: 'kW' | 'A'; factor: string };
+type DiversityCircuit = { id: string; type: string; value: string; factor: string };
 const diversityTypes = [
   ['lighting', 'Lighting'], ['sockets', 'Socket-outlets BS 1363'], ['cook', 'Cooking appliance'], ['cookSocket', 'Cooking appliance + socket'],
   ['shower', 'Shower / instantaneous heater'], ['heating', 'Space or water heating'], ['heatpump', 'Heat pump'], ['ev', 'EV charger'],
@@ -187,7 +205,7 @@ function DiversityCalculator({ onBack, onSave }: { onBack: () => void; onSave: (
   const [phase, setPhase] = useState<'1' | '3'>('1');
   const [premises, setPremises] = useState('dwelling');
   const [utilisation, setUtilisation] = useState('1');
-  const [draft, setDraft] = useState<Omit<DiversityCircuit, 'id'>>({ type: 'lighting', value: '6', unit: 'A', factor: '1' });
+  const [draft, setDraft] = useState<Omit<DiversityCircuit, 'id'>>({ type: 'lighting', value: '6', factor: '1' });
   const [circuits, setCircuits] = useState<DiversityCircuit[]>([]);
   const [calculation, setCalculation] = useState<CalculationResult | null>(null);
   const addCircuit = () => {
@@ -203,7 +221,7 @@ function DiversityCalculator({ onBack, onSave }: { onBack: () => void; onSave: (
     groups.forEach((items, type) => {
       items.sort((a, b) => Number(b.value) - Number(a.value));
       items.forEach((circuit, index) => {
-        const kw = circuit.unit === 'kW' ? Number(circuit.value) : Number(circuit.value) * voltage / 1000;
+        const kw = Number(circuit.value) * voltage / 1000;
         let factor = 1;
         if (type === 'lighting') factor = premises === 'dwelling' ? .66 : premises === 'shops' ? .9 : .75;
         else if (type === 'sockets') factor = index === 0 ? 1 : premises === 'dwelling' ? .4 : .75;
@@ -212,21 +230,21 @@ function DiversityCalculator({ onBack, onSave }: { onBack: () => void; onSave: (
         else if (type === 'heating' || type === 'motors') factor = index === 0 ? 1 : .75;
         else if (type === 'custom') factor = Math.max(0, Number(circuit.factor));
         connected += kw; diversified += kw * factor;
-        rows.push({ label: diversityTypes.find(([key]) => key === type)?.[1] ?? type, value: `${fCalc(kw, 2)} kW × ${fCalc(factor, 2)} = ${fCalc(kw * factor, 2)} kW` });
+        rows.push({ label: diversityTypes.find(([key]) => key === type)?.[1] ?? type, value: `${fCalc(Number(circuit.value), 2)} A × ${fCalc(factor, 2)} = ${fCalc(kw * factor * 1000 / voltage, 2)} A` });
       });
     });
     const uf = Math.max(0.01, Number(utilisation) || 1); const designKw = diversified * uf; const demand = designKw * 1000 / voltage; const connectedA = connected * 1000 / voltage; const cutout = [60, 80, 100].find((rating) => rating >= demand);
     setCalculation({ headline: `${fCalc(demand, 1)} A`, summary: cutout ? `${cutout} A supply cut-out carries the diversified demand` : 'Over 100 A · discuss the incoming supply with the DNO', rows: [
-      ...rows, { label: 'Connected load', value: `${fCalc(connected, 2)} kW · ${fCalc(connectedA, 1)} A` }, { label: 'DL1 diversified load', value: `${fCalc(diversified, 2)} kW` },
-      { label: 'DL2 rule of thumb (40%)', value: `${fCalc(connected * .4, 2)} kW` }, { label: `DL3 with utilisation factor ${fCalc(uf, 2)}`, value: `${fCalc(designKw, 2)} kW · ${fCalc(demand, 1)} A` },
+      ...rows, { label: 'Connected load', value: `${fCalc(connectedA, 2)} A` }, { label: 'DL1 diversified load', value: `${fCalc(diversified * 1000 / voltage, 2)} A` },
+      { label: 'DL2 rule of thumb (40%)', value: `${fCalc(connectedA * .4, 2)} A` }, { label: `DL3 with utilisation factor ${fCalc(uf, 2)}`, value: `${fCalc(demand, 2)} A` },
     ], warning: 'Distribution equipment must still be rated for the full connected load. Confirm diversity against the current On-Site Guide and the installation.' });
   };
   return <main className="page calculator-page"><button className="back-button" onClick={onBack}><ArrowLeft /> All calculators</button>
     <div className="calc-title"><span className="tool-icon" style={{ '--accent': tool.accent } as CSSProperties}><Gauge /></span><div><span>Design</span><h1>Diversity</h1><p>Build a full board circuit by circuit</p></div></div>
     <section className="calculator-form diversity-builder"><div className="field-pair"><label className="field"><span>Supply</span><div className="input-wrap"><select value={phase} onChange={(e) => setPhase(e.target.value as '1' | '3')}><option value="1">230 V single phase</option><option value="3">400 V three phase</option></select></div></label><label className="field"><span>Premises</span><div className="input-wrap"><select value={premises} onChange={(e) => setPremises(e.target.value)}><option value="dwelling">Dwelling</option><option value="shops">Shops / offices</option><option value="hotels">Hotel / guest house</option></select></div></label></div>
       <label className="field"><span>Utilisation factor (DL3)</span><div className="input-wrap"><input type="number" min="0.01" step="0.01" value={utilisation} onChange={(e) => setUtilisation(e.target.value)} /></div></label>
-      <div className="circuit-composer"><strong>Add a circuit</strong><label className="field"><span>Circuit type</span><div className="input-wrap"><select value={draft.type} onChange={(e) => setDraft({ ...draft, type: e.target.value })}>{diversityTypes.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></div></label><div className="field-pair"><label className="field"><span>Connected load</span><div className="input-wrap"><input type="number" min="0.01" step="any" value={draft.value} onChange={(e) => setDraft({ ...draft, value: e.target.value })} /></div></label><label className="field"><span>Unit</span><div className="input-wrap"><select value={draft.unit} onChange={(e) => setDraft({ ...draft, unit: e.target.value as 'kW' | 'A' })}><option>A</option><option>kW</option></select></div></label></div>{draft.type === 'custom' && <label className="field"><span>Custom diversity factor</span><div className="input-wrap"><input type="number" min="0" step="0.01" value={draft.factor} onChange={(e) => setDraft({ ...draft, factor: e.target.value })} /></div></label>}<button className="secondary-button full" type="button" onClick={addCircuit}><Plus size={17} /> Add circuit</button></div>
-      {circuits.length > 0 && <div className="circuit-list">{circuits.map((circuit, index) => <div key={circuit.id}><span><small>Circuit {index + 1}</small><strong>{diversityTypes.find(([key]) => key === circuit.type)?.[1]}</strong></span><b>{circuit.value} {circuit.unit}</b><button onClick={() => { setCircuits((items) => items.filter((item) => item.id !== circuit.id)); setCalculation(null); }} aria-label={`Remove circuit ${index + 1}`}><Trash2 size={16} /></button></div>)}</div>}
+      <div className="circuit-composer"><strong>Add a circuit</strong><label className="field"><span>Circuit type</span><div className="input-wrap"><select value={draft.type} onChange={(e) => setDraft({ ...draft, type: e.target.value })}>{diversityTypes.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></div></label><div className="field-pair"><label className="field"><span>Connected load (A)</span><div className="input-wrap"><input type="number" inputMode="decimal" min="0.01" step="any" value={draft.value} onChange={(e) => setDraft({ ...draft, value: e.target.value })} /></div></label><p className="settings-copy">Enter every circuit load in amps (A).</p></div>{draft.type === 'custom' && <label className="field"><span>Custom diversity factor</span><div className="input-wrap"><input type="number" min="0" step="0.01" value={draft.factor} onChange={(e) => setDraft({ ...draft, factor: e.target.value })} /></div></label>}<button className="secondary-button full" type="button" onClick={addCircuit}><Plus size={17} /> Add circuit</button></div>
+      {circuits.length > 0 && <div className="circuit-list">{circuits.map((circuit, index) => <div key={circuit.id}><span><small>Circuit {index + 1}</small><strong>{diversityTypes.find(([key]) => key === circuit.type)?.[1]}</strong></span><b>{circuit.value} A</b><button onClick={() => { setCircuits((items) => items.filter((item) => item.id !== circuit.id)); setCalculation(null); }} aria-label={`Remove circuit ${index + 1}`}><Trash2 size={16} /></button></div>)}</div>}
       <button className="primary-button full" type="button" disabled={!circuits.length} onClick={calculate}><Calculator size={18} /> Calculate board demand</button></section>
     {calculation && <section className="result-card" aria-live="polite"><span>Maximum demand</span><h2>{calculation.headline}</h2><p>{calculation.summary}</p><div className="result-rows">{calculation.rows.map((row, index) => <div key={`${row.label}-${index}`}><span>{row.label}</span><strong>{row.value}</strong></div>)}</div>{calculation.warning && <aside><ShieldCheck size={18} /><span>{calculation.warning}</span></aside>}<div className="result-actions"><button className="secondary-button" onClick={() => { setCircuits([]); setCalculation(null); }}><RotateCcw size={17} /> Reset</button><button className="primary-button" onClick={() => onSave(tool, calculation)}><Archive size={17} /> Save to job</button></div></section>}
   </main>;
@@ -345,6 +363,7 @@ function BottomNav({ active, navigate }: { active: NavTab; navigate: (tab: NavTa
 export default function App() {
   const [data, setData] = useState<AppData>(() => loadData());
   const [tab, setTab] = useState<NavTab>('home');
+  const [recentTools, setRecentTools] = useState<string[]>([]);
   const [activeTool, setActiveTool] = useState<string | null>(null);
   const [savingEntry, setSavingEntry] = useState<JobEntry | undefined>();
   const [newJobOpen, setNewJobOpen] = useState(false);
@@ -362,7 +381,7 @@ export default function App() {
   useEffect(() => { if (!toast) return; const timer = window.setTimeout(() => setToast(''), 2600); return () => window.clearTimeout(timer); }, [toast]);
 
   const navigate = (next: NavTab) => { setTab(next); setActiveTool(null); window.scrollTo({ top: 0 }); };
-  const openTool = (id: string) => { setActiveTool(id); setTab('tools'); window.scrollTo({ top: 0 }); };
+  const openTool = (id: string) => { setRecentTools(items => [id, ...items.filter(item => item !== id)].slice(0, 12)); setActiveTool(id); setTab('tools'); window.scrollTo({ top: 0 }); };
   const togglePin = (id: string) => setData((state) => ({ ...state, pinnedTools: state.pinnedTools.includes(id) ? state.pinnedTools.filter((item) => item !== id) : [...state.pinnedTools, id].slice(-6) }));
   const saveJob = (job: Job) => { setData((state) => ({ ...state, jobs: [job, ...state.jobs.filter((item) => item.id !== job.id)] })); setSavingEntry(undefined); setNewJobOpen(false); setEditingJob(undefined); setSigningJob(null); setToast('Job saved locally'); };
   const saveCalculation = (tool: CalculatorDefinition, calculation: CalculationResult) => setSavingEntry({ id: uid(), calculatorId: tool.id, title: tool.title, result: calculation, createdAt: new Date().toISOString() });
@@ -376,7 +395,7 @@ export default function App() {
   return <div className="app-shell">
     {splash && <Splash />}
     {!data.disclaimerAccepted && !splash && <Disclaimer accept={() => setData((state) => ({ ...state, disclaimerAccepted: true }))} />}
-    {activeTool === 'scientific' ? <ScientificCalculator onBack={() => setActiveTool(null)} /> : activeTool === 'diversity' ? <DiversityCalculator onBack={() => setActiveTool(null)} onSave={saveCalculation} /> : tool ? <CalculatorPage key={`${tool.id}-${carriedR1R2 ?? ''}`} tool={tool} initialValues={tool.id === 'zs-pfc' && carriedR1R2 ? { r1r2: carriedR1R2 } : undefined} onCarryToZs={(value) => { setCarriedR1R2(value); setActiveTool('zs-pfc'); window.scrollTo({ top: 0 }); setToast('R1 + R2 carried into the Zs check'); }} onBack={() => setActiveTool(null)} onSave={saveCalculation} /> : <>{tab === 'home' && <HomePage data={data} openTool={openTool} navigate={navigate} togglePin={togglePin} toggleTheme={toggleTheme} torchOn={torchOn} toggleTorch={() => { void toggleTorch(); }} />}{tab === 'tools' && <ToolsPage data={data} openTool={openTool} togglePin={togglePin} />}{tab === 'jobs' && <JobsPage jobs={data.jobs} newJob={() => setNewJobOpen(true)} deleteJob={removeJob} preview={setPreviewJob} editJob={setEditingJob} updateJob={saveJob} signJob={setSigningJob} toast={setToast} />}{tab === 'notes' && <NotesPage notes={data.notes} saveNote={saveNote} deleteNote={removeNote} />}{tab === 'settings' && <SettingsPage data={data} replaceData={setData} toast={setToast} />}</>}
+    {activeTool === 'scientific' ? <ScientificCalculator onBack={() => setActiveTool(null)} /> : activeTool === 'diversity' ? <DiversityCalculator onBack={() => setActiveTool(null)} onSave={saveCalculation} /> : tool ? <CalculatorPage key={`${tool.id}-${carriedR1R2 ?? ''}`} tool={tool} initialValues={tool.id === 'zs-pfc' && carriedR1R2 ? { r1r2: carriedR1R2 } : undefined} onCarryToZs={(value) => { setCarriedR1R2(value); setActiveTool('zs-pfc'); window.scrollTo({ top: 0 }); setToast('R1 + R2 carried into the Zs check'); }} onBack={() => setActiveTool(null)} onSave={saveCalculation} /> : <>{tab === 'home' && <HomePage data={data} openTool={openTool} navigate={navigate} togglePin={togglePin} toggleTheme={toggleTheme} torchOn={torchOn} toggleTorch={() => { void toggleTorch(); }} />}{tab === 'tools' && <ToolsPage data={data} openTool={openTool} togglePin={togglePin} newJob={() => setNewJobOpen(true)} recent={recentTools} />}{tab === 'jobs' && <JobsPage jobs={data.jobs} newJob={() => setNewJobOpen(true)} deleteJob={removeJob} preview={setPreviewJob} editJob={setEditingJob} updateJob={saveJob} signJob={setSigningJob} toast={setToast} />}{tab === 'notes' && <NotesPage notes={data.notes} saveNote={saveNote} deleteNote={removeNote} />}{tab === 'settings' && <SettingsPage data={data} replaceData={setData} toast={setToast} />}</>}
     {!activeTool && <BottomNav active={tab} navigate={navigate} />}
     {(savingEntry || newJobOpen || editingJob) && <JobEditor entry={savingEntry} job={editingJob} jobs={data.jobs} onClose={() => { setSavingEntry(undefined); setNewJobOpen(false); setEditingJob(undefined); }} onSave={saveJob} />}
     {signingJob && <SignatureEditor job={signingJob} onClose={() => setSigningJob(null)} onSave={saveJob} />}

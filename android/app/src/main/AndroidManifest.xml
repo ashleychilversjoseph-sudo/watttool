@@ -3,9 +3,9 @@
 
     <application
         android:allowBackup="false"
-        android:icon="@drawable/watttool_logo"
+        android:icon="@drawable/watttool_bolt"
         android:label="@string/app_name"
-        android:roundIcon="@drawable/watttool_logo"
+        android:roundIcon="@drawable/watttool_bolt"
         android:supportsRtl="true"
         android:usesCleartextTraffic="false"
         android:theme="@style/AppTheme">
